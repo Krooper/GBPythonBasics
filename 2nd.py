@@ -7,22 +7,6 @@ def is_number_and_int(number):
         return is_number_and_int(input())
 
 
-def is_integer(number):
-    if number.isdigit():
-        return True
-    else:
-        print("Вы ввели дробное число!")
-        return False
-
-
-def positive(number):
-    if number[0] == '-':
-        print("Отрицательное число преобразовано в положительное.")
-        return number[1:]
-    else:
-        return number
-
-
 # 1) Вводим с клавиатуры целое число X и У.
 # Выводим на экран количество чисел между Х и У, которые делятся на 2 и 3
 
@@ -74,7 +58,7 @@ def two_max_nums():
     # В принципе в целях экономии ресурсов (понижение сложности и отсутсвие списка),
     # можно вообще обойтись без списка и сделать всё в одном цикле:
 
-    max1, max2 = -2147483647, -2147483648
+    max1, max2 = -2147483648, -2147483647
     for i in range(int(list_length)):
         num = is_number_and_int(input(f"Введите {i + 1}-е число: "))
         if num >= max1 and num >= max2:
@@ -117,6 +101,33 @@ def salary_bill_calc():
     print(f'Кол-во купюр номиналом 1 руб: {count_1}')
 
 
+# 4) Вводим с клавиатуры многозначное число
+# Необходимо узнать и сказать последовательность цифр этого числа при просмотре слева направо
+# упорядочена по возрастанию или нет.
+# Например 1579 - да ( 1 меньше 5, 5 меньше 7, а 7 меньше 9), 1427 - нет
+
+def sequence_order():
+    # Вводим число:
+    num_seq = is_number_and_int(input(f'Введите число: '))
+
+    # Сразу сделаю в одном цикле и без списка:
+    for i in range(len(str(num_seq))):
+        if i == 0:
+            max = num_seq % 10
+            num_seq //= 10
+        else:
+            if max > num_seq % 10:
+                max = num_seq % 10
+                num_seq //= 10
+            else:
+                return False
+    return True
+
+
 #nums_interval()
 #two_max_nums()
-salary_bill_calc()
+#salary_bill_calc()
+if sequence_order():
+    print('Да')
+else:
+    print('Нет')
