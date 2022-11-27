@@ -78,27 +78,14 @@ def salary_bill_calc():
     # Вводим зарплату:
     salary = is_number_and_int(input(f'Введите зарплату: '))
 
-    # Создаем счетчики для купюр:
-    count_25, count_10, count_3, count_1 = 0, 0, 0, 0
+    count = []
+    bills = [25, 10, 3, 1]
+    for i in range(len(bills)):
+        count.append(salary//bills[i])
+        salary %= bills[i]
+        print(f'Кол-во купюр номиналом {bills[i]} руб: {count[i]}')
 
-    # Начинаем считать:
-    count_25 = salary // 25
-    salary %= 25
-
-    count_10 = salary // 10
-    salary %= 10
-
-    count_3 = salary // 3
-    salary %= 3
-
-    count_1 = salary // 1
-    salary %= 1
-
-    print(f'Минимальное кол-во купюр: {count_25+count_10+count_3+count_1}')
-    print(f'Кол-во купюр номиналом 25 руб: {count_25}')
-    print(f'Кол-во купюр номиналом 10 руб: {count_10}')
-    print(f'Кол-во купюр номиналом 3 руб: {count_3}')
-    print(f'Кол-во купюр номиналом 1 руб: {count_1}')
+    print(f'Минимальное кол-во купюр: {sum(count)}')
 
 
 # 4) Вводим с клавиатуры многозначное число
@@ -126,8 +113,8 @@ def sequence_order():
 
 #nums_interval()
 #two_max_nums()
-#salary_bill_calc()
-if sequence_order():
-    print('Да')
-else:
-    print('Нет')
+salary_bill_calc()
+# if sequence_order():
+#     print('Да')
+# else:
+#     print('Нет')
