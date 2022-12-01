@@ -71,13 +71,7 @@ def choice_sort(arr):
     return arr
 
 
-def list_gen():
-    arr = []
-    for i in range(30):
-        arr.append(randint(1, 99))
-    return arr
+test_list = [randint(1, 99) for i in range(30)]
 
-
-test_list = list_gen()
 print(f'Неотсортированный список: {test_list}')
 print(f'Отсортированный список: {choice_sort(test_list)}')
