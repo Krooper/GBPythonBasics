@@ -3,81 +3,96 @@
 проверку того, правильно ли расставлены корабли (проверка, есть ли на пути у "нового" корабля при расстановке старый,
 расположены ли корабли рядом и т.п. что можно было бы сделать через рекурсию).
 Поэтому решил этот момент оставить на проверку игрокам (надеемся на честность, как в жизни :) ).
-
 Еще сначала думал сделать каждый корабль определенной длины дочерним классом от родительского класса Ship.
 Так бы можно было сделать проверку, сколько кораблей у какого игрока осталось в игре.
 В итоге тоже пошел по пути упрощения - просто смотрим, есть ли еще поля, занятые кораблями.
-
 Подытоживая: нет многих проверок, простенький и корявенький (особенно в функции game()) код, корабли можно расположить
 только горизонтально, но играть, если игроки не подглядывают, можно :)
 Просто дальнейшая работа требовала слишком много времени, которого, к сожалению, не хватает.
 В общем, получилось небольшое упражнение на ООП и циклы.
 """
-
-
-# Статический метод для процесса игры:
+# Функция для процесса игры:
 def game():
     Player1 = Player('Миша')
     Player2 = Player('Саша')
 
-    Map1 = SeaMap(Player1)
-    Map2 = SeaMap(Player2)
-
-    Map1.empty_coordinates = Map1.set_map_coord()
-    Map2.empty_coordinates = Map2.set_map_coord()
-
-    Map1.filled_coordinates = Map1.place_ships(Player1)
-    Map2.filled_coordinates = Map2.place_ships(Player2)
-
-    print(f'{Player1.name}, вот твоя карта:')
-    Map1.print_map(Player1, Map1.filled_coordinates)
-    Map1.game_coordinates, Map1.filled_coordinates = Map1.coord_check(Player1)
-
-    print(f'{Player2.name}, вот твоя карта:')
-    Map2.print_map(Player2, Map2.filled_coordinates)
-    Map2.game_coordinates, Map2.filled_coordinates = Map2.coord_check(Player2)
-
-    Map3 = SeaMap(Player1)
-    Map4 = SeaMap(Player2)
-    Map3.empty_coordinates = Map3.set_map_coord()
-    Map4.empty_coordinates = Map4.set_map_coord()
+    Map1, Map2, Map3, Map4 = game_start(Player1, Player2)
 
     while True:
         if Map1.loose_check() and Map2.loose_check():
-            check1, fire_coord = Player1.fire(Map2, Map3)
-            if check1:
-                Map2.game_coordinates[fire_coord] = 'x'
-                Map3.empty_coordinates[fire_coord] = 'x'
-                while check1 and Map2.loose_check():
-                    check1, fire_coord = Player1.fire(Map2, Map3)
-                    Map2.game_coordinates[fire_coord] = 'x'
-                    Map3.empty_coordinates[fire_coord] = 'x'
-            Map2.game_coordinates[fire_coord] = 'o'
-            Map3.empty_coordinates[fire_coord] = 'o'
+            check1, fire_coord, Map2, Map3 = player_hit(Player1, Map2, Map3)
+            Map2.game_coordinates[fire_coord], Map3.empty_coordinates[fire_coord] = 'o', 'o'
             if Map2.loose_check():
-                check2, fire_coord = Player2.fire(Map1, Map4)
-                if check2 and Map1.loose_check():
-                    Map1.game_coordinates[fire_coord] = 'x'
-                    Map4.empty_coordinates[fire_coord] = 'x'
-                    while check2:
-                        check2, fire_coord = Player2.fire(Map1, Map4)
-                        Map1.game_coordinates[fire_coord] = 'x'
-                        Map4.empty_coordinates[fire_coord] = 'x'
+                check2, fire_coord, Map1, Map4 = player_hit(Player2, Map1, Map4)
             else:
                 break
-            Map1.game_coordinates[fire_coord] = 'o'
-            Map4.empty_coordinates[fire_coord] = 'o'
+            Map1.game_coordinates[fire_coord], Map4.empty_coordinates[fire_coord] = 'o', 'o'
         else:
             break
 
 
-# Статический метод для заполнения координат кораблями:
+# Функция для инициализации карт для игры:
+def game_start(player1, player2):
+    Map1 = SeaMap(player1)
+    Map2 = SeaMap(player2)
+
+    Map1.empty_coordinates = Map1.set_map_coord()
+    Map2.empty_coordinates = Map2.set_map_coord()
+
+    Map1.filled_coordinates = Map1.place_ships(player1)
+    Map2.filled_coordinates = Map2.place_ships(player2)
+
+    print(f'{player1.name}, вот твоя карта:')
+    print_map(Map1.filled_coordinates)
+    Map1.game_coordinates, Map1.filled_coordinates = Map1.coord_check(player1)
+
+    print(f'{player2.name}, вот твоя карта:')
+    print_map(Map2.filled_coordinates)
+    Map2.game_coordinates, Map2.filled_coordinates = Map2.coord_check(player2)
+
+    Map3 = SeaMap(player1)
+    Map4 = SeaMap(player2)
+    Map3.empty_coordinates = Map3.set_map_coord()
+    Map4.empty_coordinates = Map4.set_map_coord()
+
+    return Map1, Map2, Map3, Map4
+
+
+# Функция в случае попадания по кораблю:
+def player_hit(player, enemy_map, my_enemy_map):
+    check, coord = player.fire(enemy_map, my_enemy_map)
+    if check:
+        enemy_map.game_coordinates[coord] = 'x'
+        my_enemy_map.empty_coordinates[coord] = 'x'
+        while check and enemy_map.loose_check():
+            check, coord = player.fire(enemy_map, my_enemy_map)
+            enemy_map.game_coordinates[coord] = 'x'
+            my_enemy_map.empty_coordinates[coord] = 'x'
+        else:
+            quit()
+
+    return check, coord, enemy_map, my_enemy_map
+
+
+# Функция для заполнения координат кораблями:
 def place_ship(player, coords, start_coord, count):
     # Ставим столько 's', сколько надо в зависимости от длины корабля:
     for _ in range(player.ships[count - 1]):
         coords[start_coord] = 's'
         start_coord = f'{start_coord[0]}{int(start_coord[1]) + 1}'
     return coords
+
+
+# Функция для печати карты:
+def print_map(coords):
+    coord_x = [chr(j) for j in range(ord('a'), ord('k'))]
+    for i in range(len(coord_x)):
+        out_str = ''
+        for j in range(1, 11):
+            elem = f"{coord_x[i]}{j}"
+            out_str += f'{coords[elem]}  '
+        if out_str is not None:
+            print(out_str)
 
 
 class Player:
@@ -89,7 +104,7 @@ class Player:
     def fire(self, enemy_seamap, field_seamap):
         # Сначала выведем игроку скрытое поле врага:
         print(f'{self.name}, вот поле врага:')
-        field_seamap.print_map(self, field_seamap.empty_coordinates)
+        field_seamap.print_map(field_seamap.empty_coordinates)
         # Он выбирает координату для выстрела:
         fire_coord = input(f'{self.name}, куда будете стрелять: ')
         # Проверка, что координата присутствует на поле и что по ней еще не стреляли:
@@ -115,18 +130,6 @@ class SeaMap:
         self.game_coordinates = dict()
         self.enemy_coordinates = dict()
 
-    # Проверка, есть ли еще корабли на поле
-    def loose_check(self):
-        count = 0
-        for coord in list(self.game_coordinates):
-            if self.game_coordinates[coord] == 's':
-                count += 1
-                break
-        if count == 0:
-            print(f'{self.player.name}, вы проиграли!')
-            return False
-        return True
-
     # Создание пустых координат:
     def set_map_coord(self):
         coord_x = [chr(j) for j in range(ord('a'), ord('k'))]
@@ -134,17 +137,6 @@ class SeaMap:
             for j in range(1, 11):
                 self.empty_coordinates[coord_x[i] + str(j)] = '~'
         return self.empty_coordinates
-
-    # Просто метод для печати
-    def print_map(self, player, coords):
-        coord_x = [chr(j) for j in range(ord('a'), ord('k'))]
-        for i in range(len(coord_x)):
-            out_str = ''
-            for j in range(1, 11):
-                elem = f"{coord_x[i]}{j}"
-                out_str += f'{coords[elem]}  '
-            if out_str is not None:
-                print(out_str)
 
     # Метод для расстановки кораблей:
     def place_ships(self, player):
@@ -181,9 +173,22 @@ class SeaMap:
             self.game_coordinates = self.filled_coordinates
             self.enemy_coordinates = self.empty_coordinates
         elif answer1.lower() == 'нет':
+            self.filled_coordinates = self.set_map_coord()
             self.place_ships(player)
             return self.coord_check(player)
         return self.game_coordinates, self.enemy_coordinates
+
+    # Проверка, есть ли еще корабли на поле
+    def loose_check(self):
+        count = 0
+        for coord in list(self.game_coordinates):
+            if self.game_coordinates[coord] == 's':
+                count += 1
+                break
+        if count == 0:
+            print(f'{self.player.name}, вы проиграли!')
+            return False
+        return True
 
 
 game()
