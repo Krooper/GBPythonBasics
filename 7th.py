@@ -81,6 +81,7 @@ def day_and_time_getter():
     day_and_time_struct = time.strptime(f'{inp_time} {int(inp_day)}', '%H:%M %w')
     week_day_str = week_days_dict[str(day_and_time_struct.tm_wday)]
     time_str = time.strftime("%H:%M", day_and_time_struct)
+
     return f'{week_day_str}, {time_str}', day_and_time_struct
 
 
@@ -107,6 +108,7 @@ def schedule_file_saver(schedule):
     with open("shedule.txt", mode='w', encoding='utf-8') as schedule_file:
         for key, val in schedule.items():
             schedule_file.write('{}:{}\n'.format(key, val))
+
     return schedule
 
 
