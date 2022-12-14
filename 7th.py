@@ -110,7 +110,7 @@ def schedule_file_saver(schedule):
     return schedule
 
 
-# Функция для отображения текущего расписания
+# Функция для получения текущего расписания
 def get_active_schedule(schedule):
     active_schedule = []
     [active_schedule.append(f'{key} - {value}') for key, value in schedule.items() if
@@ -123,6 +123,7 @@ def get_active_schedule(schedule):
     return active_schedule_file.name, active_schedule
 
 
+# Функция для вывода текущего расписания в консоль
 def print_active_schedule(schedule):
     active_schedule_file, active_schedule = get_active_schedule(schedule)
     print(f'Ваше расписание записано в файл {active_schedule_file}')
