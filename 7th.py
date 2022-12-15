@@ -169,6 +169,7 @@ def print_active_schedule():
     active_schedule_file = save_active_schedule(get_active_schedule())
     active_schedule = get_active_schedule()
     print(f'Ваше расписание записано в файл {active_schedule_file}')
+    print('-' * 75)
     print('Вот ваше расписание:')
     for day_and_time, activity in active_schedule.items():
         print(f'{day_and_time} - {activity}')
@@ -176,13 +177,20 @@ def print_active_schedule():
 
 # Функция для добавления события в расписание
 def add():
+    print('-' * 75)
+    print('Меню добавления')
+    print('-' * 75)
+
     inp_day_and_time = day_and_time_getter()
     active_schedule = get_active_schedule()
     if inp_day_and_time in active_schedule.keys():
         print('Это время уже занято!')
         return
     else:
-        activity = input(f'Событие: ')
+        activity = input(f'Событие (00 - для возврата в главное меню): ')
+        if activity == '00':
+            print('Возврат')
+            return
         active_schedule[inp_day_and_time] = activity
         save_active_schedule(active_schedule)
 
@@ -196,11 +204,19 @@ def add():
 
 # Функция для изменения события в расписании
 def rewrite():
+    print('-' * 75)
+    print('Меню редактирования')
+    print('-' * 75)
+
     print('Введите день и время для редактирования события')
+
     inp_day_and_time = day_and_time_getter()
     active_schedule = get_active_schedule()
     if inp_day_and_time in active_schedule.keys():
-        activity = input(f'Событие: ')
+        activity = input(f'Событие (00 - для возврата в главное меню): ')
+        if activity == '00':
+            print('Возврат')
+            return
         active_schedule[inp_day_and_time] = activity
         save_active_schedule(active_schedule)
 
@@ -216,9 +232,18 @@ def rewrite():
 
 # Функция для удаления события из расписания
 def delete():
+    confirm = input('Вы уверены?\nДля продолжения нажмите Enter\nДля отмены введите "00" и нажмите Enter: ')
+    if confirm == '00':
+        return
+
+    print('-' * 75)
+    print('Меню удаления')
+    print('-' * 75)
+
     print('Введите день и время для удаления события')
     inp_day_and_time = day_and_time_getter()
     active_schedule = get_active_schedule()
+
     if inp_day_and_time in active_schedule.keys():
 
         active_schedule[inp_day_and_time] = 'пусто'
@@ -243,9 +268,13 @@ def input_command():
         save_active_schedule(get_active_schedule_first(get_schedule(save_schedule(empty_schedule_generator()))))
 
     while True:
+        print('-' * 75)
+        print('Главное меню')
+        print('-' * 75)
         inp_com = input(f'Введите номер действия:\n"1" - Показать расписание\n'
                         f'"2" - Добавить событие\n"3" - Редактировать событие\n'
                         f'"4" - Удалить событие\n"0" - Выход из программы\n')
+        print('-' * 75)
         try:
             inp_com = int(inp_com)
             if inp_com == 1:
