@@ -90,10 +90,17 @@ def empty_schedule_generator():
     week_days = list(weekdays_file_reader().values())
     hours = []
     for i in range(0, 24):
-        if i < 10:
-            hours.append(f'0{i}:00')
-        else:
-            hours.append(f'{i}:00')
+        for j in range(0, 60):
+            if i < 10:
+                if j < 10:
+                    hours.append(f'0{i}:0{j}')
+                else:
+                    hours.append(f'0{i}:{j}')
+            else:
+                if j < 10:
+                    hours.append(f'{i}:0{j}')
+                else:
+                    hours.append(f'{i}:{j}')
     schedule = {}
     for weekday in week_days:
         for hour in hours:
@@ -259,4 +266,3 @@ def input_command():
 
 
 input_command()
-
