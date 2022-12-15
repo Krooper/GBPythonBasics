@@ -21,6 +21,17 @@ def weekdays_file_creator(file='weekdays.txt'):
     return file
 
 
+# Функция для создания файла со словарем расшифровки дней недели в обратном направлении
+def reverse_weekdays_file_creator(file='reverse_weekdays.txt'):
+    week_days = {'Понедельник': 0, 'Вторник': 1, 'Среда': 2,
+                 'Четверг': 3, 'Пятница': 4, 'Суббота': 5, 'Воскресенье': 6}
+    with open(file, mode='w', encoding='utf-8') as reverse_weekdays:
+        for key, val in week_days.items():
+            reverse_weekdays.write('{}:{}\n'.format(key, val))
+
+    return file
+
+
 # Функция для чтения созданного выше файла
 def weekdays_file_reader(file='weekdays.txt'):
     week_days = {}
@@ -82,10 +93,10 @@ def day_and_time_getter():
     week_day_str = week_days_dict[str(day_and_time_struct.tm_wday)]
     time_str = time.strftime("%H:%M", day_and_time_struct)
 
-    return f'{week_day_str}, {time_str}'
+    return f'{week_day_str}, {time_str}', day_and_time_struct
 
 
-# Функция для создания пустого расписания
+# Функция для создания пустой сетки расписания
 def empty_schedule_generator():
     week_days = list(weekdays_file_reader().values())
     hours = []
@@ -175,56 +186,141 @@ def print_active_schedule():
         print(f'{day_and_time} - {activity}')
 
 
+
+def clear_time_period(schedule, start_struct, new_activity):
+    for day_and_time, activity in schedule.items():
+        day_str, time_str = day_and_time.split(', ')
+
+        week_days_dict = weekdays_file_reader()
+        week_day_str = week_days_dict[str(start_struct.tm_wday)]
+        schedule[f'{week_day_str}, {time_str}'] = new_activity
+    return schedule
+
+
+
+# Функция для чтения, проверки и записи события в указанный пользователем диапазон
+def activity_period_changer(start_struct, finish_struct, new_activity):
+    schedule = get_schedule()
+    reverse_weekdays = weekdays_file_reader('reverse_weekdays.txt')
+    new_schedule = {}
+    if new_activity != 'пусто':
+        for day_and_time, activity in schedule.items():
+            day_str, time_str = day_and_time.split(', ')
+            day_num = reverse_weekdays[day_str]
+            day_and_time_struct = time.strptime(f'{time_str} {int(day_num)}', '%H:%M %w')
+
+            if start_struct == day_and_time_struct and activity != 'пусто':
+                print(f'Время уже занято!\n{day_and_time} - {schedule[day_and_time]}')
+                return schedule
+            elif start_struct < day_and_time_struct < finish_struct and activity != 'пусто':
+                print(f'Время уже занято!\n{day_and_time} - {schedule[day_and_time]}')
+                return schedule
+            elif day_and_time_struct == finish_struct and activity != 'пусто':
+                print(f'Время уже занято!\n{day_and_time} - {schedule[day_and_time]}')
+                return schedule
+            elif start_struct < day_and_time_struct <= finish_struct and activity == 'пусто':
+                week_days_dict = weekdays_file_reader()
+                week_day_str = week_days_dict[str(start_struct.tm_wday)]
+                new_schedule[f'{week_day_str}, {time_str}'] = new_activity
+
+        for day_and_time, activity in new_schedule.items():
+            schedule[day_and_time] = activity
+    else:
+        schedule = clear_time_period(schedule, start_struct, new_activity)
+
+
+    return schedule
+
+
+# Функция для проверки ввода диапазона пользователя
+def time_period_check(start_struct, finish_struct):
+    if start_struct < finish_struct:
+        return True
+    return False
+
+
 # Функция для добавления события в расписание
 def add():
     print('-' * 75)
     print('Меню добавления')
     print('-' * 75)
-
-    inp_day_and_time = day_and_time_getter()
+    print('Введите дату начала нового события')
+    inp_day_and_time, start_struct = day_and_time_getter()
     active_schedule = get_active_schedule()
     if inp_day_and_time in active_schedule.keys():
         print('Это время уже занято!')
         return
     else:
-        activity = input(f'Событие (00 - для возврата в главное меню): ')
-        if activity == '00':
-            print('Возврат')
+        print('Введите дату окончания нового события')
+        inp_day_and_time_finish, finish_struct = day_and_time_getter()
+        if not time_period_check(start_struct, finish_struct):
+            print('Время начала не может быть позже времени окончания!')
+            print('Возврат в главное меню')
+            return
+        if inp_day_and_time_finish.split(', ')[0] != inp_day_and_time.split(', ')[0]:
+            print('Нельзя установить одно событие на несколько дней!')
+            print('Возврат в главное меню')
             return
 
-        active_schedule[inp_day_and_time] = activity
-        save_active_schedule(active_schedule)
+        activity = input(f'Событие (00 - для возврата в главное меню): ')
+        if activity == '00':
+            print('Возврат в главное меню')
+            return
 
-        schedule = get_schedule()
-        schedule[inp_day_and_time] = activity
+        schedule = activity_period_changer(start_struct, finish_struct, activity)
         save_schedule(schedule)
 
-        print('Успешно!')
+        active_schedule = get_active_schedule_first(get_schedule())
+        save_active_schedule(active_schedule)
     return
 
 
 # Функция для изменения события в расписании
+# Начальное время будет являться началом нового события, конечное - его окончанием
+# Любые события, попавшие в этот диапазон будут стираться, даже если их временной диапазон выходил за указанный выше
 def rewrite():
     print('-' * 75)
     print('Меню редактирования')
     print('-' * 75)
 
+    print('-' * 75)
+    print('ВНИМАНИЕ')
+    print('-' * 75)
+    print('Любые события, попавшие в этот диапазон будут стираться,'
+          '\nдаже если их временной диапазон выходил за указанный выше')
+    print('-' * 75)
+    print('ВНИМАНИЕ')
+    print('-' * 75)
+
     print('Введите день и время для редактирования события')
 
-    inp_day_and_time = day_and_time_getter()
+    inp_day_and_time, start_struct = day_and_time_getter()
     active_schedule = get_active_schedule()
     if inp_day_and_time in active_schedule.keys():
-        activity = input(f'Событие (00 - для возврата в главное меню): ')
-        if activity == '00':
-            print('Возврат')
+        print('Введите дату окончания нового события')
+        inp_day_and_time_finish, finish_struct = day_and_time_getter()
+        if not time_period_check(start_struct, finish_struct):
+            print('Время начала не может быть позже времени окончания!')
+            print('Возврат в главное меню')
+            return
+        if inp_day_and_time_finish.split(', ')[0] != inp_day_and_time.split(', ')[0]:
+            print('Нельзя установить одно событие на несколько дней!')
+            print('Возврат в главное меню')
             return
 
-        active_schedule[inp_day_and_time] = activity
-        save_active_schedule(active_schedule)
+        activity = input(f'Событие (00 - для возврата в главное меню): ')
+        if activity == '00':
+            print('Возврат в главное меню')
+            return
 
-        schedule = get_schedule()
-        schedule[inp_day_and_time] = activity
+        schedule = activity_period_changer(start_struct, finish_struct, 'пусто')
         save_schedule(schedule)
+
+        schedule = activity_period_changer(start_struct, finish_struct, activity)
+        save_schedule(schedule)
+
+        active_schedule = get_active_schedule_first(get_schedule())
+        save_active_schedule(active_schedule)
 
         print('Успешно!')
         return
@@ -235,8 +331,17 @@ def rewrite():
 
 # Функция для удаления события из расписания
 def delete():
+    print('-' * 75)
+    print('ВНИМАНИЕ')
+    print('-' * 75)
+    print('Вы будете указывать только одно время события!\n'
+          'Событие, которое проходит в это время, будет удалено полностью!')
+    print('-' * 75)
+    print('ВНИМАНИЕ')
+    print('-' * 75)
     confirm = input('Вы уверены?\nДля продолжения нажмите Enter\nДля отмены введите "00" и нажмите Enter: ')
     if confirm == '00':
+        print('Возврат в главное меню')
         return
 
     print('-' * 75)
@@ -244,16 +349,16 @@ def delete():
     print('-' * 75)
 
     print('Введите день и время для удаления события')
-    inp_day_and_time = day_and_time_getter()
+    inp_day_and_time, start_struct = day_and_time_getter()
     active_schedule = get_active_schedule()
 
     if inp_day_and_time in active_schedule.keys():
-        active_schedule[inp_day_and_time] = 'пусто'
-        save_active_schedule(active_schedule)
-
         schedule = get_schedule()
-        schedule[inp_day_and_time] = 'пусто'
+        clear_time_period(schedule, start_struct, 'пусто')
         save_schedule(schedule)
+
+        active_schedule = get_active_schedule_first(get_schedule())
+        save_active_schedule(active_schedule)
 
         print('Успешно!')
         return
@@ -278,6 +383,8 @@ def clear():
 def input_command():
     if not os.path.exists('weekdays.txt.txt'):
         weekdays_file_creator()
+    if not os.path.exists('reverse_weekdays.txt.txt'):
+        reverse_weekdays_file_creator()
     if not os.path.exists('active_schedule.txt'):
         save_active_schedule(get_active_schedule_first(get_schedule(save_schedule(empty_schedule_generator()))))
 
