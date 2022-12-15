@@ -177,12 +177,35 @@ def save_active_schedule(active_schedule):
 
 # Функция для вывода текущего расписания в консоль
 def print_active_schedule():
-    active_schedule_file = save_active_schedule(get_active_schedule())
-    active_schedule = get_active_schedule()
+    active_schedule = get_active_schedule_first(get_schedule())
+    act_schedule_dict = {}
+    time_finish, start_out, day, starttime, whats_left, out_activity = '', '', '', '', '', ''
+    for day_and_time, activity in active_schedule.items():
+        for key, value in active_schedule.items():
+            start = day_and_time
+            start_out = f'{day_and_time}  -  '
+            if active_schedule[start] == value:
+                time_finish = key.split(', ')[1]
+            else:
+                break
+        start_out += time_finish
+        _, checktime = start_out.split('  -  ')[0].split(', ')
+        day_and_starttime, whats_left = start_out.split('  -  ')
+        day, starttime = day_and_starttime.split(', ')
+        check_activity = active_schedule[f'{day}, {checktime}']
+        if act_schedule_dict == {}:
+            act_schedule_dict[start_out] = activity
+            out_activity = act_schedule_dict[f'{day}, {starttime}  -  {whats_left}']
+        elif out_activity != check_activity and start_out not in act_schedule_dict.keys():
+            act_schedule_dict[start_out] = activity
+            out_activity = act_schedule_dict[f'{day}, {starttime}  -  {whats_left}']
+
+    active_schedule_file = save_active_schedule(act_schedule_dict)
+
     print(f'Ваше расписание записано в файл {active_schedule_file}')
     print('-' * 75)
     print('Вот ваше расписание:')
-    for day_and_time, activity in active_schedule.items():
+    for day_and_time, activity in act_schedule_dict.items():
         print(f'{day_and_time} - {activity}')
 
 
@@ -246,7 +269,7 @@ def add():
 
     print('Введите дату начала нового события')
     inp_day_and_time, start_struct = day_and_time_getter()
-    active_schedule = get_active_schedule()
+    active_schedule = get_active_schedule_first(get_schedule())
     if inp_day_and_time in active_schedule.keys():
         print('Это время уже занято!')
         return
@@ -298,13 +321,11 @@ def rewrite():
     print('Введите день и время для редактирования события')
 
     inp_day_and_time, start_struct = day_and_time_getter()
-    active_schedule = get_active_schedule()
+    active_schedule = get_active_schedule_first(get_schedule())
     if inp_day_and_time in active_schedule.keys():
         print('Введите дату окончания нового события')
         inp_day_and_time_finish, finish_struct = day_and_time_getter()
-        if inp_day_and_time_finish in active_schedule.keys():
-            print('Это время уже занято!')
-            return
+
         if not time_period_check(start_struct, finish_struct):
             print('Время начала не может быть позже времени окончания!')
             print('Возврат в главное меню')
@@ -356,7 +377,7 @@ def delete():
 
     print('Введите день и время для удаления события')
     inp_day_and_time, start_struct = day_and_time_getter()
-    active_schedule = get_active_schedule()
+    active_schedule = get_active_schedule_first(get_schedule())
 
     if inp_day_and_time in active_schedule.keys():
         schedule = get_schedule()
@@ -393,7 +414,7 @@ def clear():
 
 # Функция для выбора действия, которое хочет совершить пользователь
 # Является основной функцией - зациклена и имеет возможность выхода
-def input_command():
+def calendar():
     if not os.path.exists('weekdays.txt.txt'):
         weekdays_file_creator()
     if not os.path.exists('reverse_weekdays.txt.txt'):
@@ -429,7 +450,7 @@ def input_command():
                 raise ValueError
         except ValueError:
             print('Нет такой команды, попробуйте еще раз!')
-            return input_command()
+            return calendar()
 
 
-input_command()
+calendar()
