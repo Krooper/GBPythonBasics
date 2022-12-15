@@ -187,16 +187,44 @@ def add():
     return
 
 
-# # Функция для изменения события в расписании
-# def rewrite():
-#
-#     return schedule
-#
-#
-# # Функция для удаления события из расписания
-# def delete():
-#
-#     return schedule
+# Функция для изменения события в расписании
+def rewrite():
+    print('Введите день и время для редактирования события')
+    inp_day_and_time = day_and_time_getter()
+    active_schedule = get_active_schedule()
+    if inp_day_and_time in active_schedule.keys():
+        activity = input(f'Событие: ')
+        active_schedule[inp_day_and_time] = activity
+        save_active_schedule(active_schedule)
+
+        schedule = get_schedule()
+        schedule[inp_day_and_time] = activity
+        save_schedule(schedule)
+
+        print('Успешно!')
+        return
+    print('Такого события нет!')
+    return
+
+
+# Функция для удаления события из расписания
+def delete():
+    print('Введите день и время для удаления события')
+    inp_day_and_time = day_and_time_getter()
+    active_schedule = get_active_schedule()
+    if inp_day_and_time in active_schedule.keys():
+
+        active_schedule[inp_day_and_time] = 'пусто'
+        save_active_schedule(active_schedule)
+
+        schedule = get_schedule()
+        schedule[inp_day_and_time] = 'пусто'
+        save_schedule(schedule)
+
+        print('Успешно!')
+        return
+    print('Такого события нет!')
+    return
 
 
 # Функция для выбора действия, которое хочет совершить пользователь
@@ -217,12 +245,10 @@ def input_command():
                 print_active_schedule()
             elif inp_com == 2:
                 add()
-            # elif inp_com == 3:
-            #     new_schedule = rewrite()
-            #     schedule = schedule_file_saver(new_schedule)
-            # elif inp_com == 4:
-            #     new_schedule = delete()
-            #     schedule = schedule_file_saver(new_schedule)
+            elif inp_com == 3:
+                rewrite()
+            elif inp_com == 4:
+                delete()
             elif inp_com == 0:
                 quit()
             else:
@@ -233,3 +259,4 @@ def input_command():
 
 
 input_command()
+
