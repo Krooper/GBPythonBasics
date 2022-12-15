@@ -259,6 +259,17 @@ def delete():
     return
 
 
+# Функция для очистки расписания
+def clear():
+    confirm = input('Вы уверены?\nДля продолжения нажмите Enter\nДля отмены введите "00" и нажмите Enter: ')
+    if confirm == '00':
+        return
+
+    save_active_schedule(get_active_schedule_first(get_schedule(save_schedule(empty_schedule_generator()))))
+    print('Успешно!')
+    return
+
+
 # Функция для выбора действия, которое хочет совершить пользователь
 # Является основной функцией - зациклена и имеет возможность выхода
 def input_command():
@@ -273,7 +284,8 @@ def input_command():
         print('-' * 75)
         inp_com = input(f'Введите номер действия:\n"1" - Показать расписание\n'
                         f'"2" - Добавить событие\n"3" - Редактировать событие\n'
-                        f'"4" - Удалить событие\n"0" - Выход из программы\n')
+                        f'"4" - Удалить событие\n"5" - Очистить расписание\n'
+                        f'"0" - Выход из программы\n')
         print('-' * 75)
         try:
             inp_com = int(inp_com)
@@ -286,6 +298,8 @@ def input_command():
                 rewrite()
             elif inp_com == 4:
                 delete()
+            elif inp_com == 5:
+                clear()
             elif inp_com == 0:
                 quit()
             else:
