@@ -237,7 +237,8 @@ def delete():
 # Функция для выбора действия, которое хочет совершить пользователь
 # Является основной функцией - зациклена и имеет возможность выхода
 def input_command():
-    weekdays_file_creator()
+    if not os.path.exists('weekdays.txt.txt'):
+        weekdays_file_creator()
     if not os.path.exists('active_schedule.txt'):
         save_active_schedule(get_active_schedule_first(get_schedule(save_schedule(empty_schedule_generator()))))
 
