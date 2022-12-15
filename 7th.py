@@ -104,30 +104,63 @@ def empty_schedule_generator():
 
 # Функция для сохранения расписания в файл
 # Для простоты каждый раз будем перезаписывать заново
-def schedule_file_saver(schedule):
-    with open("shedule.txt", mode='w', encoding='utf-8') as schedule_file:
-        for key, val in schedule.items():
-            schedule_file.write('{}:{}\n'.format(key, val))
+def save_schedule(schedule):
+    with open("schedule.txt", mode='w', encoding='utf-8') as schedule_file:
+        for day_and_time, activity in schedule.items():
+            schedule_file.write('{}:{}\n'.format(day_and_time, activity))
+
+    return schedule_file.name
+
+
+# Функция для получения общего расписания из файла
+def get_schedule(file='schedule.txt'):
+    schedule = {}
+    with open(file, mode='r', encoding='utf-8') as schedule_file:
+        for i in schedule_file.readlines():
+            day_and_time, activity = i.strip().split(':')
+            schedule[day_and_time] = activity
 
     return schedule
 
 
-# Функция для получения текущего расписания
-def get_active_schedule(schedule):
-    active_schedule = []
-    [active_schedule.append(f'{key} - {value}') for key, value in schedule.items() if
-        key.split(", ")[0] not in active_schedule and value != 'пусто']
+# Функция для получения текущего расписания из файла
+def get_active_schedule(file='active_schedule.txt'):
+    active_schedule = {}
+    with open(file, mode='r', encoding='utf-8') as active_schedule_file:
+        for i in active_schedule_file.readlines():
+            day_and_time, activity = i.strip().split(':')
+            active_schedule[day_and_time] = activity
 
+    return active_schedule
+
+
+# Функция для получения текущего расписания из общего
+def get_active_schedule_first(schedule):
+    active_schedule_lst = []
+    [active_schedule_lst.append(f'{key} - {value}') for key, value in schedule.items() if
+        key.split(", ")[0] not in active_schedule_lst and value != 'пусто']
+
+    active_schedule = {}
+    for event in active_schedule_lst:
+        day_and_time, activity = event.strip().split(' - ')
+        active_schedule[day_and_time] = activity
+
+    return active_schedule
+
+
+# Функция для сохранения текущего расписания в файл
+def save_active_schedule(active_schedule):
     with open("active_schedule.txt", mode='w', encoding='utf-8') as active_schedule_file:
-        for activity in active_schedule:
-            active_schedule_file.write(f'{activity}\n')
+        for day_and_time, activity in active_schedule.items():
+            active_schedule_file.write('{}:{}\n'.format(day_and_time, activity))
 
-    return active_schedule_file.name, active_schedule
+    return active_schedule_file.name
 
 
 # Функция для вывода текущего расписания в консоль
 def print_active_schedule(schedule):
-    active_schedule_file, active_schedule = get_active_schedule(schedule)
+    active_schedule_file = save_active_schedule(get_active_schedule(schedule))
+    active_schedule = get_active_schedule(schedule)
     print(f'Ваше расписание записано в файл {active_schedule_file}')
     print('Вот ваше расписание:')
     for activity in active_schedule:
@@ -155,8 +188,9 @@ def delete():
 # Функция для выбора действия, которое хочет совершить пользователь
 # Является основной функцией - зациклена и имеет возможность выхода
 def input_command():
-    schedule = empty_schedule_generator()
-    schedule_file_saver(schedule)
+
+    save_active_schedule(get_active_schedule_first(get_schedule(save_schedule(empty_schedule_generator()))))
+
     while True:
         inp_com = input(f'Введите номер действия:\n"1" - Показать расписание\n'
                         f'"2" - Добавить событие\n"3" - Редактировать событие\n'
@@ -164,10 +198,10 @@ def input_command():
         try:
             inp_com = int(inp_com)
             if inp_com == 1:
-                print_active_schedule(schedule)
+                print_active_schedule(get_active_schedule_first(
+                    get_schedule(save_schedule(empty_schedule_generator()))))
             elif inp_com == 2:
-                new_schedule = add()
-                schedule = schedule_file_saver(new_schedule)
+
             elif inp_com == 3:
                 new_schedule = rewrite()
                 schedule = schedule_file_saver(new_schedule)
