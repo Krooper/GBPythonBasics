@@ -191,6 +191,7 @@ def add():
         if activity == '00':
             print('Возврат')
             return
+
         active_schedule[inp_day_and_time] = activity
         save_active_schedule(active_schedule)
 
@@ -217,6 +218,7 @@ def rewrite():
         if activity == '00':
             print('Возврат')
             return
+
         active_schedule[inp_day_and_time] = activity
         save_active_schedule(active_schedule)
 
@@ -226,6 +228,7 @@ def rewrite():
 
         print('Успешно!')
         return
+
     print('Такого события нет!')
     return
 
@@ -245,7 +248,6 @@ def delete():
     active_schedule = get_active_schedule()
 
     if inp_day_and_time in active_schedule.keys():
-
         active_schedule[inp_day_and_time] = 'пусто'
         save_active_schedule(active_schedule)
 
@@ -255,6 +257,7 @@ def delete():
 
         print('Успешно!')
         return
+
     print('Такого события нет!')
     return
 
