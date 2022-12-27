@@ -37,7 +37,7 @@ def keyboard_main_menu():
 
 def weather(update: Update, context: CallbackContext) -> None:
     conditions, temp = get_weather()
-    conditions = capitalize(conditions)
+    conditions = conditions.capitalize()
 
     keyboard = [[InlineKeyboardButton("Главное меню", callback_data='main')]]
     reply_markup = InlineKeyboardMarkup(keyboard)
