@@ -8,15 +8,9 @@ from bs4 import BeautifulSoup
 def get_weather():
     appid = "d9c55fa87ce5fa0674e1e580a1c17baf"
     city_id = 524901
-    print('city_id=', city_id)
-
     res = requests.get("http://api.openweathermap.org/data/2.5/weather",
                        params={'id': city_id, 'units': 'metric', 'lang': 'ru', 'APPID': appid})
     data = res.json()
-    print("conditions:", data['weather'][0]['description'])
-    print("temp:", data['main']['temp'])
-    print("temp_min:", data['main']['temp_min'])
-    print("temp_max:", data['main']['temp_max'])
     return data['weather'][0]['description'], data['main']['temp']
 
 
@@ -43,6 +37,7 @@ def keyboard_main_menu():
 
 def weather(update: Update, context: CallbackContext) -> None:
     conditions, temp = get_weather()
+    conditions = capitalize(conditions)
 
     keyboard = [[InlineKeyboardButton("Главное меню", callback_data='main')]]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -50,19 +45,19 @@ def weather(update: Update, context: CallbackContext) -> None:
     query = update.callback_query
     query.answer()
     query.edit_message_text(text=f"Погода в Москве: "
-                                 f"\n{conditions}, {temp}",
+                                 f"\n{conditions},\nТемпература: {temp} C",
                             reply_markup=reply_markup)
 
 
 def dollar(update: Update, context: CallbackContext) -> None:
     data = requests.get('https://www.cbr-xml-daily.ru/daily_json.js').json()
-    keyboard = [[InlineKeyboardButton("Main menu", callback_data='main')]]
+    keyboard = [[InlineKeyboardButton("Главное меню", callback_data='main')]]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     query = update.callback_query
     query.answer()
     query.edit_message_text(text=f"Курс ЦБ РФ доллара США: \n"
-                                 f"{data['Valute']['USD']['Value']}.",
+                                 f"{round(float(data['Valute']['USD']['Value']), 2)} руб.",
                             reply_markup=reply_markup)
 
 
